@@ -1,0 +1,39 @@
+import cantera as ct
+import numpy as np
+from cantera import *
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+gas = ct.Solution('gri30.xml')
+
+mech  =  'h2air_highT.cti'  
+mech  = 'gri30.cti' 
+
+gas.TPX = 1000.0, ct.one_atm, 'CH4:0.5, O2:1, N2:3.76'
+r = ct.Reactor(gas)
+
+sim = ct.ReactorNet([r])
+time = 4.e-1
+times = np.zeros(200)
+data = np.zeros([200,4])
+
+print 'New test'
+
+print('%10s %10s %10s %14s' % ('t [s]', 'T [K]', 'vol [m3]', 'u [J/kg]'))
+
+for n in range(200):
+    time += 5.e-3
+    sim.advance(time)
+    times[n] = time
+    data[n,0] = r.T
+    #data[n,1] = r.thermo('H')
+    #data[n,2] = r.moleFraction('CH4')
+    #data[n,3] = r.moleFraction('O2')
+    data[n,1:] = r.thermo['O2', 'H', 'CH4'].X
+    #print n
+    print data[n,2]
+    print('%10.3e %10.3f %10.3f %14.6e' % (sim.time, r.T, r.thermo.v, r.thermo.u))
+    
+plt.plot(times,data[:,0])
+plt.plot(times,data[:,1])
+plt.show()
