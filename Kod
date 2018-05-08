@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt     # requirement for plots
 # without above line plots dont show up
 
 gas = ct.Solution('gri30.xml')
-gas.TPX = 1000.0, ct.one_atm, 'CH4:0.5, O2:1, N2:3.76'
+gas.TPX = 1000, ct.one_atm, 'CH4:0.5, O2:1, N2:3.76'
 r = ct.Reactor(gas)
 
 sim = ct.ReactorNet([r])
@@ -15,19 +15,25 @@ times = np.zeros(200)
 data = np.zeros([200,4])
 
 
-print('%10s %10s' % ('t [s]', 'T [K]'))
+print('%10s %10s %10s %10s %10s' % ('t [s]', 'T [K]', '02 [%]', 'H [%]', 'CH4 [%]'))
 
 for n in range(200):
     time += 5.e-3
     sim.advance(time)
     times[n] = time
     data[n,0] = r.T
-    data[n,1:] = r.thermo['O2', 'H', 'CH4'].X
-    print('%10.3e %10.3f' % (sim.time, r.T))
+    data[n,1:] = r.thermo['O2', 'H', 'CH4'].X 
+    print('%10.3e %10.3f %10.2f %10.2f %10.2f' % (sim.time, r.T, r.thermo['O2'].X * 100, r.thermo['H'].X * 100, r.thermo['CH4'].X * 100))
     
-#plt.plot(times,data[:,0])
-plt.plot(times,data[:,1])          #for every plot you must add prevoius plot-line to comment
+plt.plot(times,data[:,0])
+#plt.plot(times,data[:,1])          #for every plot you must add prevoius plot-line to comment
 #plt.plot(times,data[:,2])
 #plt.plot(times,data[:,3])
 plt.show()
+
+delta = 500.                   #to compare whether ignition appeared or not
+for i in range(200):
+    if (data[i+1,0] - data[i,0]) > delta:
+        print "Ignition comes after: %10.3f s" % (times[i])
+        break
 
